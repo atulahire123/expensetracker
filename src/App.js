@@ -4,6 +4,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import Layout from './component/Layout/Layout';
 import Authpage from './component/Pages/Authpage';
+import HomePage from './component/Pages/HomePage';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<Authpage />} />
+          <Route path="/home" element={<HomePage />} />
         </Routes>
       </Layout>
     </>
