@@ -1,0 +1,24 @@
+.card {
+    display: flex;
+    width: 25rem;
+}
+
+.actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.btn1 {
+    cursor: pointer;
+    font: inherit;
+    border-radius: 50px;
+    width: 100%;
+    margin-bottom: 5.5px;
+}
+
+.btn2 {
+    background-color: transparent; 
+    border: none; 
+    margin-top: 5px;
+}
