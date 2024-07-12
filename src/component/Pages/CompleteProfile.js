@@ -78,6 +78,10 @@ const CompleteProfile = () => {
 
   return (
     <div className="profile-container">
+    <h2 className="top-message">
+        Your Profile is <span className="highlight">64%</span> completed. A complete profile has higher chances of landing a job.
+        <button className="btn-link">Complete now</button>
+      </h2>
       <h3 className="headers">Complete Your Profile</h3>
       <div className="card">
         <h2>Contact Details</h2>
