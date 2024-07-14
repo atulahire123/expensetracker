@@ -67,7 +67,7 @@
   }
   
   .form-control {
-    display: flex;
+    display:flex;
     align-items: center;
     margin-bottom: 1rem;
   }

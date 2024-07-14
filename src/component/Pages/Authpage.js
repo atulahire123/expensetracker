@@ -17,7 +17,7 @@ const Authpage = () => {
     const enteredPassword = passwordRef.current.value;
 
     try {
-      const response = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=YOUR_API_KEY', {
+      const response = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyBk2aY2glhJpfsIJGEbHs7CXzOsSVH3H18', {
         method: 'POST',
         body: JSON.stringify({
           email: enteredEmail,

@@ -1,3 +1,4 @@
+// src/App.js
 import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -12,9 +13,6 @@ import AuthProvider from './component/context/AuthContext';
 function App() {
   return (
     <AuthProvider>
-      <div className="App">
-        <h1>App Start</h1>
-      </div>
       <Layout>
         <Routes>
           <Route path="/" element={<AuthForm isSignup={true} />} />
