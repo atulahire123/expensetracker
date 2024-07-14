@@ -1,10 +1,11 @@
-// src/component/context/AuthContext.js
 import React, { createContext, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export const AuthContext = createContext();
 
 const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token') || '');
+  const navigate = useNavigate();
 
   const login = (token) => {
     setToken(token);
@@ -14,6 +15,7 @@ const AuthProvider = ({ children }) => {
   const logout = () => {
     setToken('');
     localStorage.removeItem('token');
+    navigate('/login');
   };
 
   return (

@@ -1,17 +1,13 @@
-// src/component/MainNavigation.js
 import React, { useContext } from 'react';
 import { Container, Nav, Navbar } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import './MainNavigation.css';
 
 const MainNavigation = () => {
   const authCtx = useContext(AuthContext);
-  const navigate = useNavigate();
 
   const logoutHandler = () => {
     authCtx.logout();
-    navigate('/login');
   };
 
   return (
@@ -26,7 +22,7 @@ const MainNavigation = () => {
           <Nav.Link href="#">About us</Nav.Link>
         </Nav>
         <Nav className="d-flex align-items-center">
-          <Nav.Link onClick={logoutHandler}>Logout</Nav.Link>
+          <Nav.Link onClick={logoutHandler}>Log Out</Nav.Link>
         </Nav>
       </Container>
     </Navbar>

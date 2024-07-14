@@ -1,25 +1,28 @@
 import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Card, Form, Alert } from 'react-bootstrap';
+import { Button, Card, Form, Alert, Spinner } from 'react-bootstrap';
 import './AuthForm.css';
 
 const AuthForm = ({ isSignup }) => {
     const emailRef = useRef();
     const passwordRef = useRef();
     const [error, setError] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isResetting, setIsResetting] = useState(false);
     const navigate = useNavigate();
 
     const submitHandler = async (event) => {
         event.preventDefault();
 
         const email = emailRef.current.value;
-        const password = emailRef.current.value;
+        const password = passwordRef.current.value;
 
         let url = isSignup
             ? 'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyBk2aY2glhJpfsIJGEbHs7CXzOsSVH3H18'
             : 'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyBk2aY2glhJpfsIJGEbHs7CXzOsSVH3H18';
 
         try {
+            setIsLoading(true);
             const response = await fetch(url, {
                 method: 'POST',
                 body: JSON.stringify({ email, password, returnSecureToken: true }),
@@ -48,6 +51,40 @@ const AuthForm = ({ isSignup }) => {
             }
         } catch (error) {
             setError(error.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const resetPasswordHandler = async () => {
+        const email = emailRef.current.value;
+        if (!email) {
+            setError('Please enter your email to reset password.');
+            return;
+        }
+
+        try {
+            setIsResetting(true);
+            const response = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=AIzaSyBk2aY2glhJpfsIJGEbHs7CXzOsSVH3H18', {
+                method: 'POST',
+                body: JSON.stringify({
+                    requestType: 'PASSWORD_RESET',
+                    email,
+                }),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to send password reset email. Please try again later.');
+            }
+
+            alert('Password reset email sent. Please check your inbox.');
+        } catch (error) {
+            setError(error.message);
+        } finally {
+            setIsResetting(false);
         }
     };
 
@@ -62,16 +99,25 @@ const AuthForm = ({ isSignup }) => {
                             <Form.Label>Email address</Form.Label>
                             <Form.Control type="email" placeholder="Enter email" ref={emailRef} required />
                         </Form.Group>
-                        <Form.Group className="mb-3" controlId="formBasicPassword">
-                            <Form.Label>Password</Form.Label>
-                            <Form.Control type="password" placeholder="Password" ref={passwordRef} required />
-                        </Form.Group>
+                        {!isSignup && (
+                            <Form.Group className="mb-3" controlId="formBasicPassword">
+                                <Form.Label>Password</Form.Label>
+                                <Form.Control type="password" placeholder="Password" ref={passwordRef} required />
+                            </Form.Group>
+                        )}
                         <div className="actions">
-                            <Button type="submit" className="btn1">
-                                {isSignup ? 'Sign Up' : 'Login'}
+                            <Button type="submit" className="btn1" disabled={isLoading}>
+                                {isLoading ? 'Loading...' : isSignup ? 'Sign Up' : 'Login'}
                             </Button>
                         </div>
                     </Form>
+                    {!isSignup && (
+                        <div className="reset-password">
+                            <Button onClick={resetPasswordHandler} className="btn-link" disabled={isResetting}>
+                                {isResetting ? <Spinner animation="border" size="sm" /> : 'Forgot Password?'}
+                            </Button>
+                        </div>
+                    )}
                 </Card.Body>
             </Card>
         </section>
