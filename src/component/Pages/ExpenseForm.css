@@ -1,0 +1,31 @@
+/* src/component/Pages/ExpenseForm.css */
+.expense-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+  }
+  
+  .card {
+    width: 100%;
+    max-width: 500px;
+  }
+  
+  .expense-list {
+    width: 100%;
+    max-width: 500px;
+  }
+  
+  .expense-list ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .expense-list li {
+    background-color: #f9f9f9;
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  }
+  

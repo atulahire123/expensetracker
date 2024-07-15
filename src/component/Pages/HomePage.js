@@ -1,6 +1,8 @@
+// src/component/Pages/HomePage.js
 import React, { useState, useEffect, useContext } from 'react';
 import CompleteProfile from './CompleteProfile';
 import { AuthContext } from '../context/AuthContext';
+import ExpenseForm from './ExpenseForm';
 import './HomePage.css';
 
 const HomePage = () => {
@@ -88,6 +90,7 @@ const HomePage = () => {
         </div>
       )}
       {showCompleteProfile && <CompleteProfile />}
+      {emailVerified && <ExpenseForm />} {/* Display ExpenseForm if email is verified */}
     </div>
   );
 };

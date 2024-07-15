@@ -8,6 +8,7 @@ import Authpage from './component/Pages/Authpage';
 import AuthForm from './component/Auth/AuthForm';
 import HomePage from './component/Pages/HomePage';
 import CompleteProfile from './component/Pages/CompleteProfile';
+import ExpenseForm from './component/Pages/ExpenseForm'; // Import ExpenseForm
 import AuthProvider from './component/context/AuthContext';
 
 function App() {
