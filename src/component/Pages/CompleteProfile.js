@@ -1,4 +1,3 @@
-// src/component/Pages/CompleteProfile.js
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
@@ -78,7 +77,7 @@ const CompleteProfile = () => {
 
   return (
     <div className="profile-container">
-    <h2 className="top-message">
+      <h2 className="top-message">
         Your Profile is <span className="highlight">64%</span> completed. A complete profile has higher chances of landing a job.
         <button className="btn-link">Complete now</button>
       </h2>

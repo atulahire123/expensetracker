@@ -1,8 +1,7 @@
-// src/component/Pages/HomePage.js
 import React, { useState, useEffect, useContext } from 'react';
-import CompleteProfile from './CompleteProfile';
 import { AuthContext } from '../context/AuthContext';
-import ExpenseForm from './ExpenseForm';
+import CompleteProfile from './CompleteProfile';
+import ExpenseForm from '../Expenses/ExpenseForm';
 import './HomePage.css';
 
 const HomePage = () => {
@@ -20,14 +19,13 @@ const HomePage = () => {
 
   const fetchProfileData = async (token) => {
     try {
-      const response = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=AIzaSyBk2aY2glhJpfsIJGEbHs7CXzOsSVH3H18', {
+      const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=AIzaSyBk2aY2glhJpfsIJGEbHs7CXzOsSVH3H18`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ idToken: token }),
       });
-
       if (response.ok) {
         const data = await response.json();
         const user = data.users[0];
@@ -45,7 +43,7 @@ const HomePage = () => {
 
   const sendVerificationEmail = async () => {
     try {
-      const response = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=AIzaSyBk2aY2glhJpfsIJGEbHs7CXzOsSVH3H18', {
+      const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=AIzaSyBk2aY2glhJpfsIJGEbHs7CXzOsSVH3H18`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -55,7 +53,6 @@ const HomePage = () => {
           idToken: authCtx.token,
         }),
       });
-
       if (response.ok) {
         setVerificationSent(true);
         alert('Verification email sent. Please check your inbox.');
@@ -79,18 +76,8 @@ const HomePage = () => {
         </div>
       )}
       {verificationSent && <p>Verification email sent. Please check your inbox.</p>}
-      {!showCompleteProfile && (
-        <div className="profile-message">
-          <p>
-            Your profile is incomplete.{' '}
-            <button onClick={() => setShowCompleteProfile(true)} className="btn-link">
-              Complete now
-            </button>
-          </p>
-        </div>
-      )}
       {showCompleteProfile && <CompleteProfile />}
-      {emailVerified && <ExpenseForm />} {/* Display ExpenseForm if email is verified */}
+      {emailVerified && <ExpenseForm />}
     </div>
   );
 };

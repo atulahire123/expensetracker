@@ -1,72 +1,47 @@
+.auth-container {
+    max-width: 400px;
+    margin: auto;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
 .card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 25rem;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.form-control {
-    background-color: black;
-    color: white;
-    border: none;
-    border-radius: 50px;
-    margin-bottom: 10px;
-}
-
-.form-control::placeholder {
-    color: white;
-}
-
-.actions {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-}
-
-.btn1 {
-    cursor: pointer;
-    font: inherit;
-    border-radius: 50px;
-    width: 100%;
-    margin-bottom: 5.5px;
-    background-color: blue;
-    color: white;
-    padding: 10px;
-    border: none;
-}
-
-.btn2 {
-    cursor: pointer;
-    font: inherit;
-    border-radius: 50px;
-    width: 100%;
-    margin-top: 5px;
-    background-color: transparent;
-    border: none; 
-    color: black;
-    padding: 10px;
-}
-
-.text-center {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    width: 100%;
+    padding: 2rem;
+    margin: 1rem;
 }
 
 .card-title {
-    margin-bottom: 20px;
     font-size: 1.5rem;
+    margin-bottom: 1rem;
 }
 
-.forgot-password {
-    margin-top: 10px;
-    color: blue;
+.form-control {
+    margin-bottom: 1rem;
+}
+
+.btn1 {
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.reset-password {
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: #007bff;
+    text-decoration: underline;
     cursor: pointer;
-    text-decoration: none;
+}
+
+.btn-link:disabled {
+    color: #6c757d;
+}
+
+.alert-danger {
+    margin-bottom: 1rem;
 }

@@ -3,20 +3,18 @@ import React, { useRef, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 //import './Authpage.css';
-
 const Authpage = () => {
   const emailRef = useRef();
   const passwordRef = useRef();
   const authCtx = useContext(AuthContext);
   const navigate = useNavigate();
-
   const loginHandler = async (event) => {
     event.preventDefault();
-
     const enteredEmail = emailRef.current.value;
     const enteredPassword = passwordRef.current.value;
 
     try {
+      
       const response = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyBk2aY2glhJpfsIJGEbHs7CXzOsSVH3H18', {
         method: 'POST',
         body: JSON.stringify({
@@ -28,11 +26,9 @@ const Authpage = () => {
           'Content-Type': 'application/json',
         },
       });
-
       if (!response.ok) {
         throw new Error('Authentication failed!');
       }
-
       const data = await response.json();
       authCtx.login(data.idToken);
       navigate('/home');
@@ -40,7 +36,6 @@ const Authpage = () => {
       alert(error.message);
     }
   };
-
   return (
     <div className="auth-container">
       <h3 className="headers">Login</h3>
@@ -62,5 +57,4 @@ const Authpage = () => {
     </div>
   );
 };
-
 export default Authpage;

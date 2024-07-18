@@ -1,13 +1,16 @@
 import React, { useContext } from 'react';
 import { Container, Nav, Navbar } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import './MainNavigation.css';
 
 const MainNavigation = () => {
   const authCtx = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const logoutHandler = () => {
     authCtx.logout();
+    navigate('/login');
   };
 
   return (
@@ -28,5 +31,4 @@ const MainNavigation = () => {
     </Navbar>
   );
 };
-
 export default MainNavigation;

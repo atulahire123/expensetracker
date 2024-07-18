@@ -1,15 +1,17 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState,useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Card, Form, Alert, Spinner } from 'react-bootstrap';
+import { Card, Form, Button, Alert, Spinner } from 'react-bootstrap'; // Import necessary components
+import { AuthContext } from '../context/AuthContext';
 import './AuthForm.css';
 
 const AuthForm = ({ isSignup }) => {
     const emailRef = useRef();
     const passwordRef = useRef();
+    const authCtx = useContext(AuthContext);
+    const navigate = useNavigate();
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isResetting, setIsResetting] = useState(false);
-    const navigate = useNavigate();
 
     const submitHandler = async (event) => {
         event.preventDefault();
@@ -32,23 +34,15 @@ const AuthForm = ({ isSignup }) => {
             const data = await response.json();
 
             if (!response.ok) {
-                if (data.error.message === 'EMAIL_EXISTS') {
-                    alert('Email already exists. Redirecting to login page.');
-                    navigate('/login');
-                } else if (data.error.message === 'EMAIL_NOT_FOUND' || data.error.message === 'INVALID_PASSWORD') {
-                    throw new Error('Invalid email or password. Please try again.');
-                } else {
-                    throw new Error(data.error.message || 'Authentication failed');
+                let errorMessage = 'Authentication failed!';
+                if (data && data.error && data.error.message) {
+                    errorMessage = data.error.message;
                 }
+                throw new Error(errorMessage);
             }
 
-            if (!isSignup) {
-                localStorage.setItem('token', data.idToken);
-                navigate('/home');
-            } else {
-                alert('User created successfully! Please log in.');
-                navigate('/login');
-            }
+            authCtx.login(data.idToken, data.localId); // data.localId is the userId provided by Firebase
+            navigate('/home');
         } catch (error) {
             setError(error.message);
         } finally {
@@ -99,17 +93,13 @@ const AuthForm = ({ isSignup }) => {
                             <Form.Label>Email address</Form.Label>
                             <Form.Control type="email" placeholder="Enter email" ref={emailRef} required />
                         </Form.Group>
-                        {!isSignup && (
-                            <Form.Group className="mb-3" controlId="formBasicPassword">
-                                <Form.Label>Password</Form.Label>
-                                <Form.Control type="password" placeholder="Password" ref={passwordRef} required />
-                            </Form.Group>
-                        )}
-                        <div className="actions">
-                            <Button type="submit" className="btn1" disabled={isLoading}>
-                                {isLoading ? 'Loading...' : isSignup ? 'Sign Up' : 'Login'}
-                            </Button>
-                        </div>
+                        <Form.Group className="mb-3" controlId="formBasicPassword">
+                            <Form.Label>Password</Form.Label>
+                            <Form.Control type="password" placeholder="Password" ref={passwordRef} required />
+                        </Form.Group>
+                        <Button variant="primary" type="submit">
+                            {isSignup ? 'Sign Up' : 'Login'}
+                        </Button>
                     </Form>
                     {!isSignup && (
                         <div className="reset-password">
