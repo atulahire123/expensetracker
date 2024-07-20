@@ -1,79 +1,46 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { Card } from 'react-bootstrap';
+import React, { useEffect, useContext } from 'react';
+import { ListGroup, Button, Spinner } from 'react-bootstrap';
+import { AuthContext } from '../context/AuthContext';
 
-const ExpenseItem = (props) => {
-    const [expesnselist, setExpenselist] = useState([]);
-    let email = localStorage.getItem('email');
+const ExpenseItem = ({ expenses, onDelete, isLoading }) => {
+  const authCtx = useContext(AuthContext);
 
-    if (email) {
-        email = email.replace(/[@.""]/g, '');
+  const handleDelete = async (id) => {
+    try {
+      const response = await fetch('https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses/${authCtx.userId}/${id}.json?auth=${authCtx.token}', {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete expense.');
+      }
+
+      onDelete(id);
+    } catch (error) {
+      console.error('Failed to delete expense:', error);
     }
+  };
 
-    useEffect(() => {
-        getData();
-    }, [props.items]);
-
-    const getData = useCallback(async () => {
-        try {
-            const response = await fetch(`https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses/${email}.json`);
-            if (!response.ok) {
-                throw new Error('Failed to fetch data');
-            }
-            const data = await response.json();
-            let loadedData = [];
-
-            for (const key in data) {
-                loadedData.push({
-                    id: key,
-                    price: data[key].price,
-                    description: data[key].description,
-                    category: data[key].category
-                });
-            }
-
-            setExpenselist(loadedData);
-        } catch (error) {
-            console.log(error);
-        }
-    }, [email]);
-
-    return (
-        <div>
-            {/* Render props.items */}
-            {props.items.map((item) => (
-                <Card key={item.id_}>
-                    <Card.Body>
-                        <Card.Title>{item.description}</Card.Title>
-                        <Card.Text>
-                            <strong>Price:</strong> {item.price}
-                        </Card.Text>
-                        <Card.Text>
-                            <strong>Category:</strong> {item.category}
-                        </Card.Text>
-                    </Card.Body>
-                </Card>
-            ))}
-            
-            {/* Render fetched expesnselist */}
-            {expesnselist.length === 0 ? (
-                <h2>No expenses found</h2>
-            ) : (
-                expesnselist.map((item) => (
-                    <Card key={item.id}>
-                        <Card.Body>
-                            <Card.Title>{item.description}</Card.Title>
-                            <Card.Text>
-                                <strong>Price:</strong> {item.price}
-                            </Card.Text>
-                            <Card.Text>
-                                <strong>Category:</strong> {item.category}
-                            </Card.Text>
-                        </Card.Body>
-                    </Card>
-                ))
-            )}
-        </div>
-    );
+  return (
+    <ListGroup>
+      {isLoading && <Spinner animation="border" />}
+      {!isLoading && expenses.length === 0 && <p>No expenses found.</p>}
+      {!isLoading &&
+        expenses.map((expense) => (
+          <ListGroup.Item key={expense.id}>
+            <div className="d-flex justify-content-between align-items-center">
+              <div>
+                <p className="mb-1">{expense.description}</p>
+                <small>{expense.amount} - {expense.date}</small>
+              </div>
+              <Button variant="danger" onClick={() => handleDelete(expense.id)}>
+                Delete
+              </Button>
+            </div>
+          </ListGroup.Item>
+        ))}
+    </ListGroup>
+  );
 };
 
 export default ExpenseItem;

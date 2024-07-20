@@ -31,4 +31,5 @@ const MainNavigation = () => {
     </Navbar>
   );
 };
+
 export default MainNavigation;

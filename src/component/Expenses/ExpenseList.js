@@ -1,30 +1,29 @@
-// src/components/ExpenseList.js
 import React from 'react';
-import { Card, ListGroup } from 'react-bootstrap';
+import { ListGroup, Button } from 'react-bootstrap';
+import PropTypes from 'prop-types';
 
-const ExpenseList = ({ expenses }) => {
+const ExpenseList = ({ expenses, onDeleteExpense, onEditExpense }) => {
   return (
-    <Card style={{ width: '100%', marginRight: '1rem', marginLeft: '1rem' }}>
-      <Card.Body>
-        <Card.Title>Expenses</Card.Title>
-        <ListGroup>
-          {expenses.map((expense) => (
-            <ListGroup.Item key={expense.id}>
-              <div>
-                <strong>Price:</strong> {expense.price}
-              </div>
-              <div>
-                <strong>Description:</strong> {expense.description}
-              </div>
-              <div>
-                <strong>Category:</strong> {expense.category}
-              </div>
-            </ListGroup.Item>
-          ))}
-        </ListGroup>
-      </Card.Body>
-    </Card>
+    <ListGroup>
+      {expenses.map((expense) => (
+        <ListGroup.Item key={expense.id}>
+          <div>
+            <h5>{expense.description}</h5>
+            <p>Amount: ${expense.amount}</p>
+            <p>Date: {expense.date}</p>
+            <Button variant="secondary" onClick={() => onEditExpense(expense)}>Edit</Button>
+            <Button variant="danger" onClick={() => onDeleteExpense(expense.id)}>Delete</Button>
+          </div>
+        </ListGroup.Item>
+      ))}
+    </ListGroup>
   );
+};
+
+ExpenseList.propTypes = {
+  expenses: PropTypes.array.isRequired,
+  onDeleteExpense: PropTypes.func.isRequired,
+  onEditExpense: PropTypes.func.isRequired,
 };
 
 export default ExpenseList;

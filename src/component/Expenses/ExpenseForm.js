@@ -1,74 +1,103 @@
-import React, { useState } from 'react';
-import { Form, Button, Card } from 'react-bootstrap';
-import './ExpenseForm.css';
+import React, { useRef, useState, useEffect, useContext } from 'react';
+import { Form, Button, Alert, Spinner } from 'react-bootstrap';
+import PropTypes from 'prop-types';
+import { AuthContext } from '../context/AuthContext';
 
-const ExpenseForm = ({ onAddExpense }) => {
-  const [moneySpent, setMoneySpent] = useState('');
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('');
+const ExpenseForm = ({ onAddExpense, editingExpense, onUpdateExpense }) => {
+  const descriptionRef = useRef();
+  const amountRef = useRef();
+  const dateRef = useRef();
+  const authCtx = useContext(AuthContext);
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const submitHandler = (event) => {
+  useEffect(() => {
+    if (editingExpense) {
+      descriptionRef.current.value = editingExpense.description;
+      amountRef.current.value = editingExpense.amount;
+      dateRef.current.value = editingExpense.date;
+    }
+  }, [editingExpense]);
+
+  const submitHandler = async (event) => {
     event.preventDefault();
-    const newExpense = {
-      price: moneySpent,
-      description,
-      category
+
+    const enteredDescription = descriptionRef.current.value;
+    const enteredAmount = amountRef.current.value;
+    const enteredDate = dateRef.current.value;
+
+    if (enteredDescription.trim().length === 0 || enteredAmount.trim().length === 0 || enteredDate.trim().length === 0) {
+      setError('All fields are required.');
+      return;
+    }
+
+    setIsLoading(true);
+
+    const expenseData = {
+      description: enteredDescription,
+      amount: enteredAmount,
+      date: enteredDate,
     };
-    onAddExpense(newExpense);
-    setMoneySpent('');
-    setDescription('');
-    setCategory('');
+
+    try {
+      let url = `https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses/${authCtx.userId}.json?auth=${authCtx.token}`;
+      let method = 'POST';
+      if (editingExpense) {
+        url = `https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses/${authCtx.userId}/${editingExpense.id}.json?auth=${authCtx.token}`;
+        method = 'PUT';
+      }
+
+      const response = await fetch(url, {
+        method: method,
+        body: JSON.stringify(expenseData),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save expense.');
+      }
+
+      const data = await response.json();
+      if (editingExpense) {
+        onUpdateExpense({ id: editingExpense.id, ...expenseData });
+      } else {
+        onAddExpense({ id: data.name, ...expenseData });
+      }
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="expense-container">
-      <Card className="card">
-        <Card.Body>
-          <Card.Title className="text-center card-title">Add Daily Expense</Card.Title>
-          <Form onSubmit={submitHandler}>
-            <Form.Group className="mb-3" controlId="moneySpent">
-              <Form.Label>Money Spent</Form.Label>
-              <Form.Control
-                type="number"
-                placeholder="Enter amount"
-                value={moneySpent}
-                onChange={(e) => setMoneySpent(e.target.value)}
-                required
-              />
-            </Form.Group>
-            <Form.Group className="mb-3" controlId="description">
-              <Form.Label>Description</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                required
-              />
-            </Form.Group>
-            <Form.Group className="mb-3" controlId="category">
-              <Form.Label>Category</Form.Label>
-              <Form.Control
-                as="select"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                required
-              >
-                <option value="">Select Category</option>
-                <option value="Food">Food</option>
-                <option value="Petrol">Petrol</option>
-                <option value="Salary">Salary</option>
-                {/* Add more categories as needed */}
-              </Form.Control>
-            </Form.Group>
-            <Button type="submit" className="btn1">
-              Add Expense
-            </Button>
-          </Form>
-        </Card.Body>
-      </Card>
-    </div>
+    <Form onSubmit={submitHandler}>
+      {error && <Alert variant="danger">{error}</Alert>}
+      <Form.Group className="mb-3" controlId="description">
+        <Form.Label>Description</Form.Label>
+        <Form.Control type="text" ref={descriptionRef} />
+      </Form.Group>
+      <Form.Group className="mb-3" controlId="amount">
+        <Form.Label>Amount</Form.Label>
+        <Form.Control type="number" ref={amountRef} />
+      </Form.Group>
+      <Form.Group className="mb-3" controlId="date">
+        <Form.Label>Date</Form.Label>
+        <Form.Control type="date" ref={dateRef} />
+      </Form.Group>
+      <Button type="submit" disabled={isLoading}>
+        {isLoading ? <Spinner animation="border" size="sm" /> : (editingExpense ? 'Update Expense' : 'Add Expense')}
+      </Button>
+    </Form>
   );
+};
+
+ExpenseForm.propTypes = {
+  onAddExpense: PropTypes.func.isRequired,
+  editingExpense: PropTypes.object,
+  onUpdateExpense: PropTypes.func.isRequired,
 };
 
 export default ExpenseForm;

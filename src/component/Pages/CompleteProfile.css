@@ -117,3 +117,19 @@ text-decoration: none;
   margin-top: 1rem;
   text-align: center;
 }
+.complete-profile {
+  max-width: 500px;
+  margin: 2rem auto;
+  padding: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+}
+
+.complete-profile h2 {
+  margin-bottom: 1rem;
+}
+
+.complete-profile .btn-primary {
+  width: 100%;
+}
