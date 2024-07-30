@@ -1,3 +1,4 @@
+// src/component/Layout/MainNavigation.js
 import React, { useContext } from 'react';
 import { Container, Nav, Navbar } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
@@ -20,9 +21,9 @@ const MainNavigation = () => {
           <h3>Expense Tracker</h3>
         </Navbar.Brand>
         <Nav className="me-auto mb-2 mb-lg-0">
-          <Nav.Link href="#">Home</Nav.Link>
-          <Nav.Link href="#">Product</Nav.Link>
-          <Nav.Link href="#">About us</Nav.Link>
+          <Nav.Link href="/">Home</Nav.Link>
+          <Nav.Link href="/product">Product</Nav.Link>
+          <Nav.Link href="/about-us">About us</Nav.Link>
         </Nav>
         <Nav className="d-flex align-items-center">
           <Nav.Link onClick={logoutHandler}>Log Out</Nav.Link>

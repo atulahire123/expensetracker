@@ -1,14 +1,15 @@
-import React, { useRef, useState, useContext } from 'react';
+import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Card, Form, Alert, Spinner } from 'react-bootstrap';
-import { AuthContext } from '../context/AuthContext';
+import { useDispatch } from 'react-redux';
+import { login } from '../../store/authSlice';
 import './AuthForm.css';
 
 const AuthForm = ({ isSignup }) => {
   const emailRef = useRef();
   const passwordRef = useRef();
-  const authCtx = useContext(AuthContext);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
@@ -42,7 +43,7 @@ const AuthForm = ({ isSignup }) => {
         alert('User created successfully! Please log in.');
         navigate('/login');
       } else {
-        authCtx.login(data.idToken, data.localId);
+        dispatch(login({ token: data.idToken, userId: data.localId }));
         navigate('/home');
       }
     } catch (error) {
