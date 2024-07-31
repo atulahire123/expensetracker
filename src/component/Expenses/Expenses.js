@@ -15,7 +15,7 @@ const Expenses = () => {
   useEffect(() => {
     const fetchExpenses = async () => {
       try {
-        const response = await fetch('https://your-api.com/expenses', {
+        const response = await fetch('https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses', {
           headers: {
             Authorization: `Bearer ${token}`,
           },

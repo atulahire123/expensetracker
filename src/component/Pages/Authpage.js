@@ -16,7 +16,6 @@ const Authpage = () => {
     const enteredPassword = passwordRef.current.value;
 
     try {
-
       const response = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyBk2aY2glhJpfsIJGEbHs7CXzOsSVH3H18', {
         method: 'POST',
         body: JSON.stringify({
@@ -34,7 +33,7 @@ const Authpage = () => {
       }
 
       const data = await response.json();
-      authCtx.login(data.idToken);
+      authCtx.login(data.idToken, data.localId); // Pass both token and userId
       navigate('/home');
     } catch (error) {
       alert(error.message);

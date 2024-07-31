@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { AuthContext } from '../context/AuthContext';
 import CompleteProfile from './CompleteProfile';
 import ExpenseForm from '../Expenses/ExpenseForm';
 import ExpenseList from '../Expenses/ExpenseList';
-import { AuthContext } from '../context/AuthContext';
 import './HomePage.css';
 
 const HomePage = () => {
@@ -22,7 +22,6 @@ const HomePage = () => {
   }, []);
 
   const fetchProfileData = async (token) => {
-    console.log('Fetching profile data with token:', token); // Debugging statement
     try {
       const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=AIzaSyBk2aY2glhJpfsIJGEbHs7CXzOsSVH3H18`, {
         method: 'POST',
@@ -48,7 +47,6 @@ const HomePage = () => {
   };
 
   const fetchExpenses = async (token) => {
-    console.log('Fetching expenses with token:', token, 'userId:', authCtx.userId); // Debugging statement
     try {
       const response = await fetch(`https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses/${authCtx.userId}.json?auth=${token}`);
       if (response.ok) {
@@ -71,7 +69,6 @@ const HomePage = () => {
 
   const addExpenseHandler = async (expense) => {
     const token = localStorage.getItem('token');
-    console.log('Adding expense with token:', token, 'userId:', authCtx.userId); // Debugging statement
     try {
       const response = await fetch(`https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses/${authCtx.userId}.json?auth=${token}`, {
         method: 'POST',
@@ -94,7 +91,6 @@ const HomePage = () => {
 
   const deleteExpenseHandler = async (expenseId) => {
     const token = localStorage.getItem('token');
-    console.log('Deleting expense with token:', token, 'userId:', authCtx.userId); // Debugging statement
     try {
       const response = await fetch(`https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses/${authCtx.userId}/${expenseId}.json?auth=${token}`, {
         method: 'DELETE',
@@ -117,7 +113,6 @@ const HomePage = () => {
 
   const updateExpenseHandler = async (updatedExpense) => {
     const token = localStorage.getItem('token');
-    console.log('Updating expense with token:', token, 'userId:', authCtx.userId); // Debugging statement
     try {
       const response = await fetch(`https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses/${authCtx.userId}/${updatedExpense.id}.json?auth=${token}`, {
         method: 'PUT',
@@ -141,7 +136,6 @@ const HomePage = () => {
   };
 
   const sendVerificationEmail = async () => {
-    console.log('Sending verification email with token:', authCtx.token); // Debugging statement
     try {
       const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=AIzaSyBk2aY2glhJpfsIJGEbHs7CXzOsSVH3H18`, {
         method: 'POST',
