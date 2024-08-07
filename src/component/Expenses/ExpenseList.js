@@ -7,12 +7,16 @@ const ExpenseList = ({ expenses, onDeleteExpense, onEditExpense }) => {
     <ListGroup>
       {expenses.map((expense) => (
         <ListGroup.Item key={expense.id}>
-          <div>
-            <h5>{expense.description}</h5>
-            <p>Amount: ${expense.amount}</p>
-            <p>Date: {expense.date}</p>
-            <Button variant="secondary" onClick={() => onEditExpense(expense)}>Edit</Button>
-            <Button variant="danger" onClick={() => onDeleteExpense(expense.id)}>Delete</Button>
+          <div className="d-flex justify-content-between align-items-center">
+            <div>
+              <h5>{expense.description}</h5>
+              <p>Amount: ${expense.amount}</p>
+              <p>Date: {expense.date}</p>
+            </div>
+            <div>
+              <Button variant="secondary" onClick={() => onEditExpense(expense)}>Edit</Button>
+              <Button variant="danger" onClick={() => onDeleteExpense(expense.id)}>Delete</Button>
+            </div>
           </div>
         </ListGroup.Item>
       ))}

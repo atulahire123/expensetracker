@@ -14,14 +14,15 @@ const CompleteProfile = () => {
     event.preventDefault();
     const enteredName = nameRef.current.value;
     const enteredPhotoUrl = photoUrlRef.current.value;
-
+    const token = localStorage.getItem('token')
+    console.log(token)
     setIsLoading(true);
 
     try {
       const response = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:update?key=AIzaSyBk2aY2glhJpfsIJGEbHs7CXzOsSVH3H18', {
         method: 'POST',
         body: JSON.stringify({
-          idToken: authCtx.token,
+          idToken:token,
           displayName: enteredName,
           photoUrl: enteredPhotoUrl,
           returnSecureToken: true,

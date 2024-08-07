@@ -19,3 +19,27 @@
   border: none;
   padding: 0;
 }
+.homepage-container.light {
+  background-color: white;
+  color: black;
+}
+
+.homepage-container.dark {
+  background-color: black;
+  color: white;
+}
+
+.header {
+  text-align: center;
+}
+
+.verification-message {
+  color: red;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.premium-section {
+  text-align: center;
+  margin-top: 20px;
+}

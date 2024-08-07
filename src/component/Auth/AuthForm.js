@@ -18,17 +18,21 @@ const AuthForm = ({ isSignup }) => {
     event.preventDefault();
     const email = emailRef.current.value;
     const password = passwordRef.current.value;
+
     const url = isSignup
-      ? 'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyBk2aY2glhJpfsIJGEbHs7CXzOsSVH3H18'
-      : 'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyBk2aY2glhJpfsIJGEbHs7CXzOsSVH3H18';
+      ? `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyBk2aY2glhJpfsIJGEbHs7CXzOsSVH3H18`
+      : `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyBk2aY2glhJpfsIJGEbHs7CXzOsSVH3H18`;
+
+    setIsLoading(true);
+    setError(null);
 
     try {
-      setIsLoading(true);
       const response = await fetch(url, {
         method: 'POST',
-        body: JSON.stringify({ email, password, returnSecureToken: true }),
+        body: JSON.stringify({ email: email, password: password, returnSecureToken: true }),
         headers: { 'Content-Type': 'application/json' },
       });
+
       const data = await response.json();
 
       if (!response.ok) {
@@ -39,10 +43,16 @@ const AuthForm = ({ isSignup }) => {
         throw new Error(errorMessage);
       }
 
+      localStorage.setItem('token', data.idToken);
+      localStorage.setItem('userId', data.localId);
+
       if (isSignup) {
-        alert('User created successfully! Please log in.');
+        await sendVerificationEmail(data.idToken); // Send verification email only on signup
+        localStorage.setItem('isSignup', 'true');
+        alert('User created successfully! Please verify your email.');
         navigate('/login');
       } else {
+        localStorage.setItem('isSignup', 'false');
         dispatch(login({ token: data.idToken, userId: data.localId }));
         navigate('/home');
       }
@@ -53,15 +63,39 @@ const AuthForm = ({ isSignup }) => {
     }
   };
 
+  const sendVerificationEmail = async (token) => {
+    try {
+      const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=AIzaSyBk2aY2glhJpfsIJGEbHs7CXzOsSVH3H18`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          requestType: 'VERIFY_EMAIL',
+          idToken: token,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send verification email.');
+      }
+    } catch (error) {
+      console.error('Failed to send verification email.', error);
+    }
+  };
+
   const resetPasswordHandler = async () => {
     const email = emailRef.current.value;
     if (!email) {
       setError('Please enter your email to reset password.');
       return;
     }
+
+    setIsResetting(true);
+    setError(null);
+
     try {
-      setIsResetting(true);
-      const response = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=AIzaSyBk2aY2glhJpfsIJGEbHs7CXzOsSVH3H18', {
+      const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=AIzaSyBk2aY2glhJpfsIJGEbHs7CXzOsSVH3H18`, {
         method: 'POST',
         body: JSON.stringify({
           requestType: 'PASSWORD_RESET',
@@ -71,9 +105,11 @@ const AuthForm = ({ isSignup }) => {
           'Content-Type': 'application/json',
         },
       });
+
       if (!response.ok) {
         throw new Error('Failed to send password reset email. Please try again later.');
       }
+
       alert('Password reset email sent. Please check your inbox.');
     } catch (error) {
       setError(error.message);
@@ -98,7 +134,7 @@ const AuthForm = ({ isSignup }) => {
               <Form.Control type="password" placeholder="Password" ref={passwordRef} required />
             </Form.Group>
             <Button type="submit" className="btn1" disabled={isLoading}>
-              {isLoading ? 'Loading...' : isSignup ? 'Sign Up' : 'Login'}
+              {isLoading ? <Spinner animation="border" size="sm" /> : isSignup ? 'Sign Up' : 'Login'}
             </Button>
           </Form>
           {!isSignup && (

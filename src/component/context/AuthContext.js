@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 export const AuthContext = createContext({
   token: '',
   userId: '',
+  isLoggedIn: false,
   login: (token, userId) => {},
   logout: () => {},
 });
@@ -13,6 +14,7 @@ const AuthProvider = ({ children }) => {
   const [userId, setUserId] = useState(localStorage.getItem('userId') || '');
   const navigate = useNavigate();
 
+  
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
     const storedUserId = localStorage.getItem('userId');
@@ -39,8 +41,10 @@ const AuthProvider = ({ children }) => {
     navigate('/login');
   };
 
+  const isLoggedIn = !!token;
+
   return (
-    <AuthContext.Provider value={{ token, userId, login: loginHandler, logout: logoutHandler }}>
+    <AuthContext.Provider value={{ token, userId, isLoggedIn, login: loginHandler, logout: logoutHandler }}>
       {children}
     </AuthContext.Provider>
   );

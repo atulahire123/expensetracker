@@ -1,29 +1,35 @@
-// src/component/Expenses/Expenses.js
-
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { addExpense, setExpenses } from '../../store/actions/expenseActions';
-//import './Expenses.css';
 
 const Expenses = () => {
   const [amount, setAmount] = useState('');
   const expenses = useSelector((state) => state.expenses.expenses);
   const totalAmount = useSelector((state) => state.expenses.totalAmount);
+  const token = useSelector((state) => state.auth.token); // Ensure token is correctly set
   const dispatch = useDispatch();
-  const token = useSelector((state) => state.auth.token);
 
   useEffect(() => {
     const fetchExpenses = async () => {
+      if (!token) {
+        console.error('No token available');
+        return;
+      }
+
       try {
-        const response = await fetch('https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await fetch(`https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses.json?auth=${token}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch expenses.');
+        }
+
         const data = await response.json();
-        dispatch(setExpenses(data));
+        const loadedExpenses = [];
+        for (const key in data) {
+          loadedExpenses.push({ id: key, ...data[key] });
+        }
+        dispatch(setExpenses(loadedExpenses));
       } catch (error) {
-        console.error('Failed to fetch expenses:', error);
+        console.error('Error fetching expenses:', error);
       }
     };
 
@@ -31,7 +37,10 @@ const Expenses = () => {
   }, [dispatch, token]);
 
   const addExpenseHandler = () => {
-    const newExpense = { id: Date.now(), amount: parseFloat(amount) };
+    if (amount.trim().length === 0) {
+      return;
+    }
+    const newExpense = { id: Date.now(), amount: parseFloat(amount) }; // Ensure id is unique
     dispatch(addExpense(newExpense));
     setAmount('');
   };

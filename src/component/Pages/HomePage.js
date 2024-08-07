@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { AuthContext } from '../context/AuthContext';
-import CompleteProfile from './CompleteProfile';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import ExpenseForm from '../Expenses/ExpenseForm';
 import ExpenseList from '../Expenses/ExpenseList';
+import CompleteProfile from './CompleteProfile';
+import downloadCSV from './downloadCSV';
+import { themeActions } from '../../store/theme-slice';
 import './HomePage.css';
 
 const HomePage = () => {
@@ -10,16 +12,18 @@ const HomePage = () => {
   const [editingExpense, setEditingExpense] = useState(null);
   const [showCompleteProfile, setShowCompleteProfile] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false);
-  const [verificationSent, setVerificationSent] = useState(false);
-  const authCtx = useContext(AuthContext);
+
+  const dispatch = useDispatch();
+  const userId = localStorage.getItem('userId'); // Retrieve userId from localStorage
+  const token = localStorage.getItem('token'); // Retrieve token from localStorage
+  const themeState = useSelector((state) => state.theme.darkMode);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
+    if (userId && token) {
       fetchProfileData(token);
-      fetchExpenses(token);
+      fetchExpenses(userId, token);
     }
-  }, []);
+  }, [userId, token]);
 
   const fetchProfileData = async (token) => {
     try {
@@ -39,38 +43,37 @@ const HomePage = () => {
           setShowCompleteProfile(true);
         }
       } else {
-        console.log('Failed to fetch profile data.');
+        console.error('Failed to fetch profile data.');
       }
     } catch (error) {
-      console.log('Failed to fetch profile data.', error);
+      console.error('Failed to fetch profile data.', error);
     }
   };
 
-  const fetchExpenses = async (token) => {
+  const fetchExpenses = async (userId, token) => {
     try {
-      const response = await fetch(`https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses/${authCtx.userId}.json?auth=${token}`);
+      const response = await fetch(`https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses/${userId}.json?auth=${token}`);
       if (response.ok) {
         const data = await response.json();
         const loadedExpenses = [];
         for (const key in data) {
           loadedExpenses.push({
             id: key,
-            ...data[key]
+            ...data[key],
           });
         }
         setExpenses(loadedExpenses);
       } else {
-        console.log('Failed to fetch expenses.');
+        console.error('Failed to fetch expenses.');
       }
     } catch (error) {
-      console.log('Failed to fetch expenses.', error);
+      console.error('Failed to fetch expenses.', error);
     }
   };
 
   const addExpenseHandler = async (expense) => {
-    const token = localStorage.getItem('token');
     try {
-      const response = await fetch(`https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses/${authCtx.userId}.json?auth=${token}`, {
+      const response = await fetch(`https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses/${userId}.json?auth=${token}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -82,28 +85,26 @@ const HomePage = () => {
         const data = await response.json();
         setExpenses((prevExpenses) => [...prevExpenses, { id: data.name, ...expense }]);
       } else {
-        console.log('Failed to add expense.');
+        console.error('Failed to add expense.');
       }
     } catch (error) {
-      console.log('Failed to add expense.', error);
+      console.error('Failed to add expense.', error);
     }
   };
 
   const deleteExpenseHandler = async (expenseId) => {
-    const token = localStorage.getItem('token');
     try {
-      const response = await fetch(`https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses/${authCtx.userId}/${expenseId}.json?auth=${token}`, {
+      const response = await fetch(`https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses/${userId}/${expenseId}.json?auth=${token}`, {
         method: 'DELETE',
       });
 
       if (response.ok) {
-        setExpenses((prevExpenses) => prevExpenses.filter(expense => expense.id !== expenseId));
-        console.log("Expense successfully deleted");
+        setExpenses((prevExpenses) => prevExpenses.filter((expense) => expense.id !== expenseId));
       } else {
-        console.log('Failed to delete expense.');
+        console.error('Failed to delete expense.');
       }
     } catch (error) {
-      console.log('Failed to delete expense.', error);
+      console.error('Failed to delete expense.', error);
     }
   };
 
@@ -112,9 +113,8 @@ const HomePage = () => {
   };
 
   const updateExpenseHandler = async (updatedExpense) => {
-    const token = localStorage.getItem('token');
     try {
-      const response = await fetch(`https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses/${authCtx.userId}/${updatedExpense.id}.json?auth=${token}`, {
+      const response = await fetch(`https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses/${userId}/${updatedExpense.id}.json?auth=${token}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -123,60 +123,51 @@ const HomePage = () => {
       });
 
       if (response.ok) {
-        setExpenses((prevExpenses) => prevExpenses.map(expense => 
-          expense.id === updatedExpense.id ? updatedExpense : expense
-        ));
+        setExpenses((prevExpenses) => prevExpenses.map((expense) => (expense.id === updatedExpense.id ? updatedExpense : expense)));
         setEditingExpense(null);
       } else {
-        console.log('Failed to update expense.');
+        console.error('Failed to update expense.');
       }
     } catch (error) {
-      console.log('Failed to update expense.', error);
+      console.error('Failed to update expense.', error);
     }
   };
 
-  const sendVerificationEmail = async () => {
-    try {
-      const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=AIzaSyBk2aY2glhJpfsIJGEbHs7CXzOsSVH3H18`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          requestType: 'VERIFY_EMAIL',
-          idToken: authCtx.token,
-        }),
-      });
+  const totalExpenses = expenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
 
-      if (response.ok) {
-        setVerificationSent(true);
-        alert('Verification email sent. Please check your inbox.');
-      } else {
-        console.log('Failed to send verification email.');
-      }
-    } catch (error) {
-      console.log('Failed to send verification email.', error);
-    }
+  const toggleThemeHandler = () => {
+    dispatch(themeActions.toggleTheme());
   };
+
+  const isSignup = localStorage.getItem('isSignup') === 'true';
 
   return (
-    <div className="homepage-container">
+    <div className={`homepage-container ${themeState ? 'dark' : 'light'}`}>
       <h3 className="header">Welcome to Expense Tracker!!!</h3>
-      {!emailVerified && !verificationSent && (
+      <button onClick={toggleThemeHandler}>Toggle Theme</button>
+      {isSignup && !emailVerified && (
         <div className="verification-message">
           <p>Your email is not verified. Please verify your email.</p>
-          <button onClick={sendVerificationEmail} className="btn-link">
-            Verify Email
-          </button>
         </div>
       )}
-      {verificationSent && <p>Verification email sent. Please check your inbox.</p>}
       {showCompleteProfile && <CompleteProfile />}
-      {emailVerified && (
-        <>
-          <ExpenseForm onAddExpense={addExpenseHandler} editingExpense={editingExpense} onUpdateExpense={updateExpenseHandler} />
-          <ExpenseList expenses={expenses} onDeleteExpense={deleteExpenseHandler} onEditExpense={editExpenseHandler} />
-        </>
+      <ExpenseForm
+        onAddExpense={addExpenseHandler}
+        editingExpense={editingExpense}
+        onUpdateExpense={updateExpenseHandler}
+        userId={userId}
+        token={token}
+      />
+      <ExpenseList
+        expenses={expenses}
+        onDeleteExpense={deleteExpenseHandler}
+        onEditExpense={editExpenseHandler}
+      />
+      {totalExpenses >= 10000 && (
+        <div className="premium-section">
+          <h3>Premium Features</h3>
+          <button onClick={() => downloadCSV(expenses)}>Download CSV</button>
+        </div>
       )}
     </div>
   );

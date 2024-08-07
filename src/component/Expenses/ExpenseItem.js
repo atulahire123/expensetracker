@@ -1,13 +1,14 @@
-import React, { useEffect, useContext } from 'react';
+import React from 'react';
 import { ListGroup, Button, Spinner } from 'react-bootstrap';
-import { AuthContext } from '../context/AuthContext';
+import { useSelector } from 'react-redux';
 
 const ExpenseItem = ({ expenses, onDelete, isLoading }) => {
-  const authCtx = useContext(AuthContext);
+  const token = useSelector((state) => state.auth.token);
+  const userId = useSelector((state) => state.auth.userId);
 
   const handleDelete = async (id) => {
     try {
-      const response = await fetch('https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses/${authCtx.userId}/${id}.json?auth=${authCtx.token}', {
+      const response = await fetch(`https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses/${userId}/${id}.json?auth=${token}`, {
         method: 'DELETE',
       });
 

@@ -1,13 +1,11 @@
-import React, { useRef, useState, useEffect, useContext } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Form, Button, Alert, Spinner } from 'react-bootstrap';
 import PropTypes from 'prop-types';
-import { AuthContext } from '../context/AuthContext';
 
-const ExpenseForm = ({ onAddExpense, editingExpense, onUpdateExpense }) => {
+const ExpenseForm = ({ onAddExpense, editingExpense, onUpdateExpense, userId, token }) => {
   const descriptionRef = useRef();
   const amountRef = useRef();
   const dateRef = useRef();
-  const authCtx = useContext(AuthContext);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -40,10 +38,10 @@ const ExpenseForm = ({ onAddExpense, editingExpense, onUpdateExpense }) => {
     };
 
     try {
-      let url = `https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses/${authCtx.userId}.json?auth=${authCtx.token}`;
+      let url = `https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses/${userId}.json?auth=${token}`;
       let method = 'POST';
       if (editingExpense) {
-        url = `https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses/${authCtx.userId}/${editingExpense.id}.json?auth=${authCtx.token}`;
+        url = `https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses/${userId}/${editingExpense.id}.json?auth=${token}`;
         method = 'PUT';
       }
 
@@ -98,6 +96,8 @@ ExpenseForm.propTypes = {
   onAddExpense: PropTypes.func.isRequired,
   editingExpense: PropTypes.object,
   onUpdateExpense: PropTypes.func.isRequired,
+  userId: PropTypes.string.isRequired,
+  token: PropTypes.string.isRequired,
 };
 
 export default ExpenseForm;
