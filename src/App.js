@@ -8,20 +8,23 @@ import HomePage from './component/Pages/HomePage';
 import CompleteProfile from './component/Pages/CompleteProfile';
 import Expenses from './component/Expenses/Expenses';
 import { ThemeProvider } from './component/context/ThemeContext';
+import AuthProvider from './component/context/AuthContext';
 
 function App() {
   return (
-    <ThemeProvider>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<AuthForm isSignup={true} />} />
-          <Route path="/login" element={<AuthForm isSignup={false} />} />
-          <Route path="/home" element={<HomePage />} />
-          <Route path="/complete-profile" element={<CompleteProfile />} />
-          <Route path="/expenses" element={<Expenses />} />
-        </Routes>
-      </Layout>
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<AuthForm isSignup={true} />} />
+            <Route path="/login" element={<AuthForm isSignup={false} />} />
+            <Route path="/home" element={<HomePage />} />
+            <Route path="/complete-profile" element={<CompleteProfile />} />
+            <Route path="/expenses" element={<Expenses />} />
+          </Routes>
+        </Layout>
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
 

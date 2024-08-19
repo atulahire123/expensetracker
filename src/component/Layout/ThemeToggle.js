@@ -1,18 +1,18 @@
-// src/components/ThemeToggle.js
 import React from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { themeActions } from '../../store/theme-slice'; // Ensure correct path
 
 const ThemeToggle = () => {
   const dispatch = useDispatch();
-  const theme = useSelector((state) => state.theme.theme);
+  const theme = useSelector((state) => state.theme.theme); // Correctly accessing the theme
 
-  const toggleTheme = () => {
-    dispatch({ type: 'TOGGLE_THEME' });
+  const toggleThemeHandler = () => {
+    dispatch(themeActions.toggleTheme());
   };
 
   return (
-    <button onClick={toggleTheme}>
-      Switch to {theme === 'light' ? 'Dark' : 'Light'} Theme
+    <button onClick={toggleThemeHandler}>
+      {theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
     </button>
   );
 };

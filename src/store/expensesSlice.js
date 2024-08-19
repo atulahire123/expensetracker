@@ -1,4 +1,3 @@
-// src/store/expensesSlice.js
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
@@ -18,8 +17,16 @@ const expensesSlice = createSlice({
       state.items = action.payload;
       state.totalAmount = action.payload.reduce((sum, expense) => sum + expense.amount, 0);
     },
+    deleteExpense(state, action) {
+      const deletedExpense = state.items.find(item => item.id === action.payload);
+      if (deletedExpense) {
+        state.totalAmount -= deletedExpense.amount;
+      }
+      state.items = state.items.filter(item => item.id !== action.payload);
+    },
   },
 });
 
-export const { addExpense, setExpenses } = expensesSlice.actions;
+// Exporting actions in a single object
+export const { addExpense, setExpenses, deleteExpense } = expensesSlice.actions;
 export default expensesSlice.reducer;

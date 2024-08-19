@@ -3,8 +3,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import ExpenseForm from '../Expenses/ExpenseForm';
 import ExpenseList from '../Expenses/ExpenseList';
 import CompleteProfile from './CompleteProfile';
-import downloadCSV from './downloadCSV';
 import { themeActions } from '../../store/theme-slice';
+import { setExpenses, deleteExpense } from '../../store/expensesSlice'; // Combined imports
+
 import './HomePage.css';
 
 const HomePage = () => {
@@ -27,13 +28,16 @@ const HomePage = () => {
 
   const fetchProfileData = async (token) => {
     try {
-      const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=AIzaSyBk2aY2glhJpfsIJGEbHs7CXzOsSVH3H18`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ idToken: token }),
-      });
+      const response = await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=AIzaSyBk2aY2glhJpfsIJGEbHs7CXzOsSVH3H18`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ idToken: token }),
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -43,7 +47,8 @@ const HomePage = () => {
           setShowCompleteProfile(true);
         }
       } else {
-        console.error('Failed to fetch profile data.');
+        const errorData = await response.json();
+        console.error('Failed to fetch profile data:', errorData.error.message);
       }
     } catch (error) {
       console.error('Failed to fetch profile data.', error);
@@ -52,7 +57,9 @@ const HomePage = () => {
 
   const fetchExpenses = async (userId, token) => {
     try {
-      const response = await fetch(`https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses/${userId}.json?auth=${token}`);
+      const response = await fetch(
+        `https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses/${userId}.json?auth=${token}`
+      );
       if (response.ok) {
         const data = await response.json();
         const loadedExpenses = [];
@@ -63,6 +70,7 @@ const HomePage = () => {
           });
         }
         setExpenses(loadedExpenses);
+        dispatch(setExpenses(loadedExpenses)); // Sync Redux store with fetched expenses
       } else {
         console.error('Failed to fetch expenses.');
       }
@@ -73,17 +81,23 @@ const HomePage = () => {
 
   const addExpenseHandler = async (expense) => {
     try {
-      const response = await fetch(`https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses/${userId}.json?auth=${token}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(expense),
-      });
+      const response = await fetch(
+        `https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses/${userId}.json?auth=${token}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(expense),
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
-        setExpenses((prevExpenses) => [...prevExpenses, { id: data.name, ...expense }]);
+        setExpenses((prevExpenses) => [
+          ...prevExpenses,
+          { id: data.name, ...expense },
+        ]);
       } else {
         console.error('Failed to add expense.');
       }
@@ -92,14 +106,22 @@ const HomePage = () => {
     }
   };
 
-  const deleteExpenseHandler = async (expenseId) => {
+  const handleDeleteitem = async (id) => {
     try {
-      const response = await fetch(`https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses/${userId}/${expenseId}.json?auth=${token}`, {
-        method: 'DELETE',
-      });
+      const response = await fetch(
+        `https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses/${userId}/${id}.json?auth=${token}`,
+        {
+          method: 'DELETE',
+        }
+      );
 
       if (response.ok) {
-        setExpenses((prevExpenses) => prevExpenses.filter((expense) => expense.id !== expenseId));
+        // Remove the item from local state
+        const updatedExpenses = expenses.filter((expense) => expense.id !== id);
+        setExpenses(updatedExpenses);
+
+        // Update the Redux store
+        dispatch(deleteExpense(id));
       } else {
         console.error('Failed to delete expense.');
       }
@@ -108,22 +130,25 @@ const HomePage = () => {
     }
   };
 
-  const editExpenseHandler = (expense) => {
-    setEditingExpense(expense);
-  };
-
   const updateExpenseHandler = async (updatedExpense) => {
     try {
-      const response = await fetch(`https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses/${userId}/${updatedExpense.id}.json?auth=${token}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updatedExpense),
-      });
+      const response = await fetch(
+        `https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses/${userId}/${updatedExpense.id}.json?auth=${token}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updatedExpense),
+        }
+      );
 
       if (response.ok) {
-        setExpenses((prevExpenses) => prevExpenses.map((expense) => (expense.id === updatedExpense.id ? updatedExpense : expense)));
+        setExpenses((prevExpenses) =>
+          prevExpenses.map((expense) =>
+            expense.id === updatedExpense.id ? updatedExpense : expense
+          )
+        );
         setEditingExpense(null);
       } else {
         console.error('Failed to update expense.');
@@ -133,10 +158,26 @@ const HomePage = () => {
     }
   };
 
-  const totalExpenses = expenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
+  const totalExpenses = expenses.reduce(
+    (sum, expense) => sum + parseFloat(expense.amount),
+    0
+  );
 
   const toggleThemeHandler = () => {
     dispatch(themeActions.toggleTheme());
+  };
+
+  const downloadCSV = (expenses) => {
+    const csvContent =
+      'data:text/csv;charset=utf-8,' +
+      expenses.map((expense) => `${expense.name},${expense.amount},${expense.date}`).join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', 'expenses.csv');
+    document.body.appendChild(link); // Required for FF
+    link.click();
+    document.body.removeChild(link);
   };
 
   const isSignup = localStorage.getItem('isSignup') === 'true';
@@ -160,8 +201,8 @@ const HomePage = () => {
       />
       <ExpenseList
         expenses={expenses}
-        onDeleteExpense={deleteExpenseHandler}
-        onEditExpense={editExpenseHandler}
+        onDeleteExpense={handleDeleteitem}
+        onEditExpense={updateExpenseHandler}
       />
       {totalExpenses >= 10000 && (
         <div className="premium-section">

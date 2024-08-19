@@ -2,14 +2,16 @@ import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Card, Form, Alert, Spinner } from 'react-bootstrap';
 import { useDispatch } from 'react-redux';
-import { login } from '../../store/authSlice';
+import { authActions } from '../../store/authSlice';
 import './AuthForm.css';
 
-const AuthForm = ({ isSignup }) => {
+const AuthForm = () => {
   const emailRef = useRef();
   const passwordRef = useRef();
+  const confirmPasswordRef = useRef(); 
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [isSignup, setIsSignup] = useState(false);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
@@ -18,6 +20,12 @@ const AuthForm = ({ isSignup }) => {
     event.preventDefault();
     const email = emailRef.current.value;
     const password = passwordRef.current.value;
+    const confirmPassword = isSignup ? confirmPasswordRef.current.value : null;
+
+    if (isSignup && password !== confirmPassword) {
+      setError("Passwords do not match!");
+      return;
+    }
 
     const url = isSignup
       ? `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyBk2aY2glhJpfsIJGEbHs7CXzOsSVH3H18`
@@ -29,7 +37,7 @@ const AuthForm = ({ isSignup }) => {
     try {
       const response = await fetch(url, {
         method: 'POST',
-        body: JSON.stringify({ email: email, password: password, returnSecureToken: true }),
+        body: JSON.stringify({ email:email, password:password, returnSecureToken: true }),
         headers: { 'Content-Type': 'application/json' },
       });
 
@@ -37,8 +45,11 @@ const AuthForm = ({ isSignup }) => {
 
       if (!response.ok) {
         let errorMessage = 'Authentication failed!';
-        if (data && data.error && data.error.message) {
-          errorMessage = data.error.message;
+        if (data.error?.message === 'EMAIL_EXISTS') {
+          setIsSignup(false); 
+          setError('Account already exists! Please log in.');
+        } else {
+          setError(data.error?.message || errorMessage);
         }
         throw new Error(errorMessage);
       }
@@ -47,17 +58,15 @@ const AuthForm = ({ isSignup }) => {
       localStorage.setItem('userId', data.localId);
 
       if (isSignup) {
-        await sendVerificationEmail(data.idToken); // Send verification email only on signup
-        localStorage.setItem('isSignup', 'true');
+        await sendVerificationEmail(data.idToken);
         alert('User created successfully! Please verify your email.');
-        navigate('/login');
+        navigate('/complete-profile'); // Navigate to Complete Profile page
       } else {
-        localStorage.setItem('isSignup', 'false');
-        dispatch(login({ token: data.idToken, userId: data.localId }));
+        dispatch(authActions.loginHandler(data.idToken));
         navigate('/home');
       }
     } catch (error) {
-      setError(error.message);
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -65,29 +74,30 @@ const AuthForm = ({ isSignup }) => {
 
   const sendVerificationEmail = async (token) => {
     try {
-      const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=AIzaSyBk2aY2glhJpfsIJGEbHs7CXzOsSVH3H18`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          requestType: 'VERIFY_EMAIL',
-          idToken: token,
-        }),
-      });
+      const response = await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=AIzaSyBk2aY2glhJpfsIJGEbHs7CXzOsSVH3H18`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ requestType: 'VERIFY_EMAIL', idToken: token }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error('Failed to send verification email.');
       }
+
+      alert('Verification email sent. Please check your inbox.');
     } catch (error) {
-      console.error('Failed to send verification email.', error);
+      console.error('Verification email error:', error);
+      setError(error.message);
     }
   };
 
   const resetPasswordHandler = async () => {
     const email = emailRef.current.value;
     if (!email) {
-      setError('Please enter your email to reset password.');
+      setError('Please enter your email to reset the password.');
       return;
     }
 
@@ -95,19 +105,18 @@ const AuthForm = ({ isSignup }) => {
     setError(null);
 
     try {
-      const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=AIzaSyBk2aY2glhJpfsIJGEbHs7CXzOsSVH3H18`, {
-        method: 'POST',
-        body: JSON.stringify({
-          requestType: 'PASSWORD_RESET',
-          email,
-        }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=AIzaSyBk2aY2glhJpfsIJGEbHs7CXzOsSVH3H18`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ requestType: 'PASSWORD_RESET', email }),
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
 
       if (!response.ok) {
-        throw new Error('Failed to send password reset email. Please try again later.');
+        const data = await response.json();
+        throw new Error(data.error?.message || 'Failed to send password reset email.');
       }
 
       alert('Password reset email sent. Please check your inbox.');
@@ -122,7 +131,9 @@ const AuthForm = ({ isSignup }) => {
     <section className="d-flex align-items-center justify-content-center mt-5">
       <Card className="card">
         <Card.Body>
-          <Card.Title className="text-center card-title">{isSignup ? 'Sign Up' : 'Login'}</Card.Title>
+          <Card.Title className="text-center card-title">
+            {isSignup ? 'Sign Up' : 'Login'}
+          </Card.Title>
           {error && <Alert variant="danger">{error}</Alert>}
           <Form onSubmit={submitHandler}>
             <Form.Group className="mb-3" controlId="formBasicEmail">
@@ -133,6 +144,12 @@ const AuthForm = ({ isSignup }) => {
               <Form.Label>Password</Form.Label>
               <Form.Control type="password" placeholder="Password" ref={passwordRef} required />
             </Form.Group>
+            {isSignup && (
+              <Form.Group className="mb-3" controlId="formBasicConfirmPassword">
+                <Form.Label>Confirm Password</Form.Label>
+                <Form.Control type="password" placeholder="Confirm Password" ref={confirmPasswordRef} required />
+              </Form.Group>
+            )}
             <Button type="submit" className="btn1" disabled={isLoading}>
               {isLoading ? <Spinner animation="border" size="sm" /> : isSignup ? 'Sign Up' : 'Login'}
             </Button>
@@ -144,6 +161,11 @@ const AuthForm = ({ isSignup }) => {
               </Button>
             </div>
           )}
+          <div className="mt-3 text-center">
+            <Button variant="link" onClick={() => setIsSignup(!isSignup)}>
+              {isSignup ? 'Already have an account? Login' : 'Create new account'}
+            </Button>
+          </div>
         </Card.Body>
       </Card>
     </section>

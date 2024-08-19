@@ -11,6 +11,7 @@ const Authpage = () => {
 
   const loginHandler = async (event) => {
     event.preventDefault();
+    
 
     const enteredEmail = emailRef.current.value;
     const enteredPassword = passwordRef.current.value;

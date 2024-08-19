@@ -19,52 +19,37 @@ const ExpenseForm = ({ onAddExpense, editingExpense, onUpdateExpense, userId, to
 
   const submitHandler = async (event) => {
     event.preventDefault();
-
     const enteredDescription = descriptionRef.current.value;
     const enteredAmount = amountRef.current.value;
     const enteredDate = dateRef.current.value;
 
     if (enteredDescription.trim().length === 0 || enteredAmount.trim().length === 0 || enteredDate.trim().length === 0) {
-      setError('All fields are required.');
+      setError('Please fill out all fields.');
       return;
     }
 
-    setIsLoading(true);
-
     const expenseData = {
       description: enteredDescription,
-      amount: enteredAmount,
+      amount: parseFloat(enteredAmount),
       date: enteredDate,
     };
 
+    setIsLoading(true);
+    setError(null);
+
     try {
-      let url = `https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses/${userId}.json?auth=${token}`;
-      let method = 'POST';
       if (editingExpense) {
-        url = `https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses/${userId}/${editingExpense.id}.json?auth=${token}`;
-        method = 'PUT';
-      }
-
-      const response = await fetch(url, {
-        method: method,
-        body: JSON.stringify(expenseData),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save expense.');
-      }
-
-      const data = await response.json();
-      if (editingExpense) {
-        onUpdateExpense({ id: editingExpense.id, ...expenseData });
+        await onUpdateExpense({ ...expenseData, id: editingExpense.id });
       } else {
-        onAddExpense({ id: data.name, ...expenseData });
+        await onAddExpense(expenseData);
       }
+
+      descriptionRef.current.value = '';
+      amountRef.current.value = '';
+      dateRef.current.value = '';
     } catch (error) {
-      setError(error.message);
+      setError('Failed to submit expense.');
+      console.error('Submit error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -73,20 +58,20 @@ const ExpenseForm = ({ onAddExpense, editingExpense, onUpdateExpense, userId, to
   return (
     <Form onSubmit={submitHandler}>
       {error && <Alert variant="danger">{error}</Alert>}
-      <Form.Group className="mb-3" controlId="description">
+      <Form.Group controlId="description">
         <Form.Label>Description</Form.Label>
-        <Form.Control type="text" ref={descriptionRef} />
+        <Form.Control type="text" ref={descriptionRef} placeholder="Enter expense description" />
       </Form.Group>
-      <Form.Group className="mb-3" controlId="amount">
+      <Form.Group controlId="amount" className="mt-3">
         <Form.Label>Amount</Form.Label>
-        <Form.Control type="number" ref={amountRef} />
+        <Form.Control type="number" ref={amountRef} placeholder="Enter amount" />
       </Form.Group>
-      <Form.Group className="mb-3" controlId="date">
+      <Form.Group controlId="date" className="mt-3">
         <Form.Label>Date</Form.Label>
         <Form.Control type="date" ref={dateRef} />
       </Form.Group>
-      <Button type="submit" disabled={isLoading}>
-        {isLoading ? <Spinner animation="border" size="sm" /> : (editingExpense ? 'Update Expense' : 'Add Expense')}
+      <Button type="submit" className="mt-3" disabled={isLoading}>
+        {isLoading ? <Spinner animation="border" size="sm" /> : editingExpense ? 'Update Expense' : 'Add Expense'}
       </Button>
     </Form>
   );

@@ -1,40 +1,39 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { Container, Nav, Navbar } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
-import { ThemeContext } from '../context/ThemeContext';
-//import HomePage from '../Pages/HomePage';
+import { useDispatch, useSelector } from 'react-redux';
+import { authActions } from '../../store/authSlice'; // Corrected import
 import './MainNavigation.css';
 import ThemeToggle from './ThemeToggle';
 
+
 const MainNavigation = () => {
-  const authCtx = useContext(AuthContext);
-  const { state: themeState } = useContext(ThemeContext);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const isAuthenticated = useSelector((state) => state.authentication.isAuthenticated);
+
 
   const logoutHandler = () => {
-    authCtx.logout();
-    navigate('/login');
+    dispatch(authActions.logoutHandler()); // Dispatching logout action using authActions
+    navigate('/login'); // Navigate to login page after logout
+    
   };
-
-  const loginHandler = () => {
-    navigate('/login');
-  };
-
+  
+    
   return (
-    <Navbar expand="lg" className={`custom-navbar ${themeState.darkMode ? 'dark' : 'light'}`}>
+    <Navbar expand="lg" className="custom-navbar">
       <Container fluid>
         <Navbar.Brand href="#">
           <h3>Expense Tracker</h3>
         </Navbar.Brand>
         <Nav className="me-auto mb-2 mb-lg-0">
-          <Nav.Link href="/">Sign in</Nav.Link>
+          <Nav.Link href="/">Home</Nav.Link>
         </Nav>
         <Nav className="d-flex align-items-center">
-          {authCtx.isLoggedIn ? (
+          {isAuthenticated ? (
             <Nav.Link onClick={logoutHandler}>Log Out</Nav.Link>
           ) : (
-            <Nav.Link onClick={loginHandler}>Log In</Nav.Link>
+            <Nav.Link href="/login">Log In</Nav.Link>
           )}
           <ThemeToggle />
         </Nav>
