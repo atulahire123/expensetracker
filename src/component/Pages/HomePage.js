@@ -18,6 +18,7 @@ const HomePage = () => {
   const userId = localStorage.getItem('userId'); // Retrieve userId from localStorage
   const token = localStorage.getItem('token'); // Retrieve token from localStorage
   const themeState = useSelector((state) => state.theme.darkMode);
+  console.log(userId);
 
   useEffect(() => {
     if (userId && token) {
@@ -29,7 +30,7 @@ const HomePage = () => {
   const fetchProfileData = async (token) => {
     try {
       const response = await fetch(
-        `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=AIzaSyBk2aY2glhJpfsIJGEbHs7CXzOsSVH3H18`,
+        'https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=AIzaSyBk2aY2glhJpfsIJGEbHs7CXzOsSVH3H18',
         {
           method: 'POST',
           headers: {
@@ -69,6 +70,7 @@ const HomePage = () => {
             ...data[key],
           });
         }
+        console.log(loadedExpenses);
         setExpenses(loadedExpenses);
         dispatch(setExpenses(loadedExpenses)); // Sync Redux store with fetched expenses
       } else {
@@ -107,6 +109,7 @@ const HomePage = () => {
   };
 
   const handleDeleteitem = async (id) => {
+    console.log('Attempting to delete expense with id:', id);
     try {
       const response = await fetch(
         `https://expensetracker-1a25f-default-rtdb.firebaseio.com/expenses/${userId}/${id}.json?auth=${token}`,
@@ -116,6 +119,9 @@ const HomePage = () => {
       );
 
       if (response.ok) {
+        // Log response to check
+        console.log('Expense deleted successfully:', await response.json());
+
         // Remove the item from local state
         const updatedExpenses = expenses.filter((expense) => expense.id !== id);
         setExpenses(updatedExpenses);
@@ -123,10 +129,11 @@ const HomePage = () => {
         // Update the Redux store
         dispatch(deleteExpense(id));
       } else {
-        console.error('Failed to delete expense.');
+        const errorData = await response.json();
+        console.error('Failed to delete expense:', errorData);
       }
     } catch (error) {
-      console.error('Failed to delete expense.', error);
+      console.error('Error deleting expense:', error);
     }
   };
 
